@@ -3,7 +3,7 @@ package Functions;
 public class MyFunction implements Function {
     @Override
     public double evaluate(double x) {
-        return x * x + x + 1;
+        return x * x + x - 1;
     }
 
     @Override
