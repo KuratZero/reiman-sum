@@ -1,5 +1,6 @@
 package Riemann;
 
+// Список методов
 public enum Method {
     LeftPoint,
     MiddlePoint,

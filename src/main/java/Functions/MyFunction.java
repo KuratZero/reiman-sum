@@ -1,5 +1,7 @@
 package Functions;
 
+
+// Функция из условия лабораторной
 public class MyFunction implements Function {
     @Override
     public double evaluate(double x) {

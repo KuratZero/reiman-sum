@@ -8,12 +8,14 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-
+// Подсчёт суммы с визуализацией
 public class RiemannSum {
 
     final Function f;
     final Random random;
+    // Параметр для сравнения двух double
     private double EPS = 1e-9;
+    // Параметр для построения графика
     private double STEP = 0.01;
 
     public RiemannSum(Function func) {
@@ -33,6 +35,7 @@ public class RiemannSum {
     private record GetNode(double result, double lhs, double rhs) {
     }
 
+    // Выбор точки
     private GetNode get(double l, double r, Method md) {
         double y;
         switch (md) {
@@ -63,6 +66,7 @@ public class RiemannSum {
         }
     }
 
+    // Новая трапеция
     private void addNewInterval(XYChart chart, double tl, double tr, double lhs, double rhs) {
         XYSeries ser = chart.addSeries("NONE" + tl + tr,
                 new double[]{tl, tl, tr, tr},
@@ -78,6 +82,7 @@ public class RiemannSum {
         ser.setShowInLegend(false);
     }
 
+    // Подсчёт суммы и визуализация
     public double calculateSum(int n, double l, double r, Method md, boolean createChart, boolean cerr) {
         if (r - l < 0) {
             throw new RuntimeException("Invalid left and right: l = " + l + " r = " + r + "\n");
@@ -118,6 +123,7 @@ public class RiemannSum {
         return sum;
     }
 
+    // Создание графика
     private XYChart createXYChart(double l, double r, Method md) {
         List<Double> x = new ArrayList<>();
         List<Double> y = new ArrayList<>();

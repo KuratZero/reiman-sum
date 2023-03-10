@@ -1,5 +1,6 @@
 package Functions;
 
+// Дополнительная функция для проверки
 public class SinFunc implements Function {
     @Override
     public double evaluate(double x) {
