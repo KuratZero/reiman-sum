@@ -1,9 +1,12 @@
 package Riemann;
 
 import Functions.*;
+import org.knowm.xchart.*;
+import org.knowm.xchart.style.markers.BaseSeriesMarkers;
 
-import java.util.Objects;
-import java.util.Random;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 
 public class RiemannSum {
@@ -11,6 +14,7 @@ public class RiemannSum {
     final Function f;
     final Random random;
     private double EPS = 1e-9;
+    private double STEP = 0.01;
 
     public RiemannSum(Function func) {
         Objects.requireNonNull(func);
@@ -22,46 +26,120 @@ public class RiemannSum {
         this.EPS = newEPS;
     }
 
-    private double get(double l, double r, Method md) {
+    public void setSTEP(double newSTEP) {
+        this.STEP = newSTEP;
+    }
+
+    private record GetNode(double result, double lhs, double rhs) {
+    }
+
+    private GetNode get(double l, double r, Method md) {
+        double y;
         switch (md) {
             case LeftPoint -> {
-                return f.evaluate(l);
+                y = f.evaluate(l);
+                return new GetNode(y, y, y);
             }
             case RightPoint -> {
-                return f.evaluate(r);
+                y = f.evaluate(r);
+                return new GetNode(y, y, y);
             }
             case MiddlePoint -> {
-                return f.evaluate((l + r) / 2);
+                y = f.evaluate((l + r) / 2);
+                return new GetNode(y, y, y);
             }
             case RandomPoint -> {
-                return f.evaluate(random.nextDouble(l, r + EPS));
+                double x = random.nextDouble(l, r + EPS);
+                y = f.evaluate(x);
+                return new GetNode(y, y, y);
             }
-            case Trapezium ->  {
-                return (f.evaluate(l) + f.evaluate(r)) / 2;
+            case Trapezium -> {
+                double y1 = f.evaluate(l);
+                double y2 = f.evaluate(r);
+                return new GetNode((y1 + y2) / 2, y1, y2);
             }
             default -> throw new RuntimeException("Unknown Method: " + md.name() + ", l/r : " + l + " / " + r);
 
         }
     }
 
-    public double calculateSum(int n, double l, double r, Method md, boolean cerr) {
-        if(r - l < 0) {
+    private void addNewInterval(XYChart chart, double tl, double tr, double lhs, double rhs) {
+        XYSeries ser = chart.addSeries("NONE" + tl + tr,
+                new double[]{tl, tl, tr, tr},
+                new double[]{0, lhs, rhs, 0});
+        ser.setLineWidth((float) 1.3);
+        if(lhs > EPS && rhs > EPS) {
+            ser.setLineColor(Color.GREEN);
+        } else {
+            ser.setLineColor(Color.RED);
+        }
+
+        ser.setMarker(BaseSeriesMarkers.NONE);
+        ser.setShowInLegend(false);
+    }
+
+    public double calculateSum(int n, double l, double r, Method md, boolean createChart, boolean cerr) {
+        if (r - l < 0) {
             throw new RuntimeException("Invalid left and right: l = " + l + " r = " + r + "\n");
         }
+
+        XYChart chart = null;
+        if (createChart) {
+            chart = createXYChart(l, r, md);
+        }
+
+
         double sum = 0;
         double tl = l;
         double tr = l + (r - l) / n;
         while (Math.abs(r - tl) > EPS) {
+            GetNode get = get(tl, tr, md);
+
+            if (createChart) {
+                addNewInterval(chart, tl, tr, get.lhs, get.rhs);
+            }
+
+            double sumDar = get.result * ((r - l) / n);
+
             if (cerr) {
                 System.err.printf("f(x) = %s for l = %.6f r = %.6f with %s : %.6f\n",
-                        f, tl, tr, md.name(), get(tl, tr, md) * ((r - l) / n));
+                        f, tl, tr, md.name(), sumDar);
             }
-            sum += get(tl, tr, md) * ((r - l) / n);
+
+            sum += sumDar;
             tl = tr;
             tr += (r - l) / n;
         }
 
+        if (createChart) {
+            new SwingWrapper(chart).displayChart();
+        }
+
         return sum;
+    }
+
+    private XYChart createXYChart(double l, double r, Method md) {
+        List<Double> x = new ArrayList<>();
+        List<Double> y = new ArrayList<>();
+
+        for (double i = l; (r - i) > EPS; i += STEP) {
+            x.add(i);
+            y.add(f.evaluate(i));
+        }
+
+        XYChart chart = new XYChartBuilder().width(600).height(400)
+                .title("Riemann " + f + " " + md.name()).xAxisTitle("X").yAxisTitle("Y").build();
+
+        XYSeries ser = chart.addSeries("zero", new double[]{l, r}, new double[]{0, 0});
+        ser.setMarker(BaseSeriesMarkers.NONE);
+        ser.setLineColor(Color.darkGray);
+        ser.setShowInLegend(false);
+
+        ser = chart.addSeries("f(x)", x, y);
+        ser.setMarker(BaseSeriesMarkers.NONE);
+        ser.setLineColor(Color.BLUE);
+
+        return chart;
     }
 
 }

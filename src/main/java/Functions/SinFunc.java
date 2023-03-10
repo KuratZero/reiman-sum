@@ -1,13 +1,13 @@
 package Functions;
 
-public class MyFunction implements Function {
+public class SinFunc implements Function {
     @Override
     public double evaluate(double x) {
-        return x * x + x + 1;
+        return Math.sin(x);
     }
 
     @Override
     public String toString() {
-        return "x^2 + x - 1";
+        return "sin x";
     }
 }
