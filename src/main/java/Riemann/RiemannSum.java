@@ -84,7 +84,7 @@ public class RiemannSum {
 
     // Подсчёт суммы и визуализация
     public double calculateSum(int n, double l, double r, Method md, boolean createChart, boolean cerr) {
-        if (r - l < 0) {
+        if (r - l < EPS) {
             throw new RuntimeException("Invalid left and right: l = " + l + " r = " + r + "\n");
         }
 
