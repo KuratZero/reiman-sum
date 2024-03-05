@@ -5,7 +5,7 @@ public class Riemann {
     public static void main(String[] args) {
         RiemannSum sm = new RiemannSum(new MyFunction());
 
-        int n = 10;
+        int n = 10000;
         double l = 1;
         double r = 4;
 
